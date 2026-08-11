@@ -1,0 +1,41 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.26.3'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26.7.0'
+      - name: Prepare explicit online release inputs
+        run: ./scripts/prepare-online.sh
+      - name: Verify and package
+        run: |
+          ./scripts/verify-security.sh
+          make package-offline
+      - name: Create prerelease with offline assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            release-output/*.tar.gz \
+            release-output/*.tar.zst \
+            release-output/SHA256SUMS \
+            release-output/*dependencies*.md \
+            --prerelease \
+            --title "QMI Web $GITHUB_REF_NAME" \
+            --notes "SMS-only release candidate. Real QMI SMS-only validation passed; production hardware cutover has not been completed."

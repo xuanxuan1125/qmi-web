@@ -1,0 +1,43 @@
+# Runtime state, secrets, and user data
+data/
+logs/
+runtime/
+backups/
+config/config.yaml
+*.db
+*.db-*
+*.db-shm
+*.db-wal
+master.key
+setup-token
+.env
+.env.*
+!.env.example
+
+# Build outputs, offline bundle inputs, and release archives
+build/
+release-output/
+offline/
+toolchains/
+node_modules/
+web/node_modules/
+web/dist/
+internal/web/dist/*
+!internal/web/dist/index.html
+!internal/web/dist/assets/
+!internal/web/dist/assets/app-placeholder.js
+bin/
+coverage/
+tmp/
+*.tar.gz
+*.tar.zst
+SHA256SUMS
+MANIFEST.sha256
+RELEASE_COMMIT
+RELEASE_METADATA
+
+# Editors and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

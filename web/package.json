@@ -1,0 +1,27 @@
+{
+  "name": "qmi-web-ui",
+  "version": "0.2.0-rc1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "node ./scripts/check-version-source.mjs && vue-tsc --noEmit && vite build",
+    "check:version-source": "node ./scripts/check-version-source.mjs",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "pinia": "4.0.2",
+    "vue": "3.5.41",
+    "vue-router": "5.2.0"
+  },
+  "devDependencies": {
+	"@vue/test-utils": "2.4.6",
+    "@vitejs/plugin-vue": "6.0.8",
+	"jsdom": "26.1.0",
+    "typescript": "5.9.3",
+    "vite": "8.2.1",
+    "vitest": "4.1.10",
+    "vue-tsc": "3.3.9"
+  }
+}
