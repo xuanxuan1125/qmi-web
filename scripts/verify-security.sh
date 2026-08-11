@@ -58,7 +58,10 @@ for pattern in '-----BEGIN (RSA |EC |OPENSSH |)PRIVATE KEY-----' 'gh[pousr]_[A-Z
 done
 
 if command -v shellcheck >/dev/null 2>&1; then
-  shellcheck "$ROOT/install.sh" "$ROOT/scripts/"*.sh
+  # Follow the local common.sh helper. The excluded findings are reviewed
+  # information-only false positives from intentional path-fragment scanning
+  # and the manifest's explicit self-exclusion; warnings and errors still fail.
+  shellcheck -x -e SC1003,SC1091,SC2094,SC2295 "$ROOT/install.sh" "$ROOT/scripts/"*.sh
 else
   bash -n "$ROOT/install.sh" "$ROOT/scripts/"*.sh
 fi
