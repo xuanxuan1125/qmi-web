@@ -253,17 +253,17 @@ EOF
 }
 
 verify_runtime_security() {
-  local actual_user privileged capadd capdrop readonly rules devices network mounts
+  local actual_user privileged capadd capdrop root_readonly rules devices network mounts
   actual_user=$(docker inspect --format '{{.Config.User}}' "$container_name")
   privileged=$(docker inspect --format '{{.HostConfig.Privileged}}' "$container_name")
   capadd=$(docker inspect --format '{{json .HostConfig.CapAdd}}' "$container_name")
   capdrop=$(docker inspect --format '{{json .HostConfig.CapDrop}}' "$container_name")
-  readonly=$(docker inspect --format '{{.HostConfig.ReadonlyRootfs}}' "$container_name")
+  root_readonly=$(docker inspect --format '{{.HostConfig.ReadonlyRootfs}}' "$container_name")
   rules=$(docker inspect --format '{{range .HostConfig.DeviceCgroupRules}}{{println .}}{{end}}' "$container_name")
   devices=$(docker inspect --format '{{json .HostConfig.Devices}}' "$container_name")
   network=$(docker inspect --format '{{.HostConfig.NetworkMode}}' "$container_name")
   mounts=$(docker inspect --format '{{range .Mounts}}{{printf "%s|%s|%s\n" .Source .Destination .Type}}{{end}}' "$container_name")
-  [[ $actual_user == 65532:65532 && $privileged == false && $readonly == true && $network == bridge ]] || return 1
+  [[ $actual_user == 65532:65532 && $privileged == false && $root_readonly == true && $network == bridge ]] || return 1
   [[ $capdrop == *ALL* ]] || return 1
   [[ $capadd == '[]' || $capadd == 'null' ]] || return 1
   [[ $devices == '[]' || $devices == 'null' ]] || return 1
