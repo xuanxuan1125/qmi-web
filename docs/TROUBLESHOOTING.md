@@ -7,6 +7,16 @@
   locally. The installer intentionally will not guess.
 - Device is busy: inspect the owner reported by fuser or lsof. Stop or
   coordinate with that known owner yourself; QMI Web will not kill it.
+- Foreign qmicli process: identify the parent command, systemd cgroup, and
+  triggering timer. Stop the owning service and use a runtime mask for a
+  recurring unit before retrying; do not whitelist qmicli or use kill -9.
+- ModemManager conflict: an active ModemManager can probe a QMI node even when
+  the application container is healthy. Record its original enabled/active
+  state, stop and runtime-mask it during an exclusive cutover, then restore it
+  from the saved state only after QMI Web is released.
+- A container can open the device while another host supervisor still probes
+  it. Treat that as an ownership failure; `/health` and HTTP 200 are not an
+  ownership proof.
 - Permission probe failed: verify the host supports getfacl and setfacl. The
   script will not fall back to root or a broad device mapping.
 - Port is busy: choose a different host port with --port.

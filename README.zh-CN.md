@@ -63,6 +63,44 @@ hardware 模式必须显式选择一个动态检测到的 `/dev/cdc-wdmX`。容�
 
 hardware 模式不会修改 USB 模式，不发送 AT，不设置 APN，不启动蜂窝数据。
 
+## QMI 设备独占与迁移
+
+hardware 模式要求目标 `/dev/cdc-wdmX` 在整个运行期间由 QMI Web 独占。`qmicli`、
+`uqmi`、`qmi-network`、ModemManager、其他 modem 面板或宿主 supervisor 都不能
+同时探测该节点。容器能启动、`/health` 返回 200，并不等于宿主机没有其他 QMI
+客户端。
+
+先只读检查：
+
+```bash
+sudo ./scripts/host/qmi-claim.sh status --device /dev/cdc-wdmX
+sudo ./scripts/host/qmi-claim.sh observe --device /dev/cdc-wdmX --duration 300
+```
+
+需要迁移旧系统时，只能显式指定已经审计确认的 unit 和容器：
+
+```bash
+sudo ./scripts/host/qmi-claim.sh isolate \
+  --device /dev/cdc-wdmX \
+  --state /var/lib/qmi-web/pre-qmiweb-cutover-state.json \
+  --container <legacy-container> \
+  --unit <conflicting-timer> \
+  --unit <conflicting-service> \
+  --modemmanager
+```
+
+该 helper 只停止指定组件并添加 runtime mask，保存原来的 enabled/active 状态；
+不会猜测 VoHive，不会停止整个 Docker 或网络栈，也不会授予 QMI Web 额外权限。
+释放设备后用保存的 state 恢复：
+
+```bash
+sudo ./scripts/host/qmi-release.sh /var/lib/qmi-web/pre-qmiweb-cutover-state.json
+```
+
+发现 foreign `qmicli` 时应找到其父进程和触发 timer，停止对应服务并阻止其自动重启，
+不要使用 `kill -9` 或把它加入白名单。ModemManager 也必须在独占期间停止或被阻止
+访问目标节点。详见 [`docs/HOST_OWNERSHIP.md`](docs/HOST_OWNERSHIP.md)。
+
 ## QMI 设备检测
 
 ```bash
@@ -122,7 +160,7 @@ sudo ./scripts/rollback-to-vohive.sh \\
 
 ## 故障排查
 
-先查看 `/health`、`/ready`、`/version`、容器日志和 `app-status.json`。检查设备是否仍为字符设备、驱动是否为 `qmi_wwan`、是否被其他进程占用，以及 WDS 是否始终为 disconnected。遇到权限错误不要改成 root、privileged 或 `chmod 666`；先恢复 ACL 基线并停止硬件模式。
+先查看 `/health`、`/ready`、`/version`、容器日志和 `app-status.json`。检查设备是否仍为字符设备、驱动是否为 `qmi_wwan`、是否被其他进程占用，以及 WDS 是否始终为 disconnected。遇到权限错误不要改成 root、privileged 或 `chmod 666`；先恢复 ACL 基线并停止硬件模式。若出现 foreign `qmicli`，检查 PID、PPID、systemd cgroup 和触发 timer；不要只依赖 `fuser`，也不要把健康 HTTP 当作独占证明。
 
 ## 从源码构建
 

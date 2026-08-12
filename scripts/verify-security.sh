@@ -61,9 +61,9 @@ if command -v shellcheck >/dev/null 2>&1; then
   # Follow the local common.sh helper. The excluded findings are reviewed
   # information-only false positives from intentional path-fragment scanning
   # and the manifest's explicit self-exclusion; warnings and errors still fail.
-  shellcheck -x -e SC1003,SC1091,SC2094,SC2295 "$ROOT/install.sh" "$ROOT/scripts/"*.sh
+  shellcheck -x -e SC1003,SC1091,SC2094,SC2295 "$ROOT/install.sh" "$ROOT/scripts/"*.sh "$ROOT/scripts/host/"*.sh
 else
-  bash -n "$ROOT/install.sh" "$ROOT/scripts/"*.sh
+  bash -n "$ROOT/install.sh" "$ROOT/scripts/"*.sh "$ROOT/scripts/host/"*.sh
 fi
 
 if (( failed != 0 )); then

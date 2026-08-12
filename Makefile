@@ -6,7 +6,7 @@ BUILD_TIME ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 LDFLAGS = -s -w -X qmi-web/internal/version.Version=$(VERSION) -X qmi-web/internal/version.Commit=$(COMMIT) -X qmi-web/internal/version.BuildTime=$(BUILD_TIME)
 GO_PACKAGES = ./cmd/... ./internal/...
 
-.PHONY: dev build test frontend backend image docker offline-build package-offline verify clean security-check
+.PHONY: dev build test frontend backend image docker offline-build package-offline verify ownership-test clean security-check
 
 dev:
 	QMI_WEB_BACKEND=mock $(GO) run -mod=vendor ./cmd/server
@@ -40,8 +40,12 @@ package-offline:
 
 verify:
 	./scripts/verify-security.sh
+	./scripts/host/test-ownership.sh
 	$(GO) test -mod=vendor $(GO_PACKAGES)
 	$(GO) vet -mod=vendor $(GO_PACKAGES)
+
+ownership-test:
+	./scripts/host/test-ownership.sh
 
 security-check:
 	./scripts/verify-security.sh

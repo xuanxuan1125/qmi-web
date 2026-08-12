@@ -25,6 +25,13 @@ a read-only root filesystem, keeps bridge networking, and uses an exact current
 character-device \`major:minor\` cgroup rule. It does not map \`/dev\` broadly or
 access AT serial ports.
 
+Hardware mode also requires exclusive host ownership of the selected QMI
+control node. `qmicli`, `uqmi`, `qmi-network`, ModemManager, another modem
+panel, or a host supervisor must not probe the same node while QMI Web is
+running. A healthy container is not proof of exclusive ownership; recurring
+services must be stopped and temporarily masked so a timer or dependency cannot
+restart them.
+
 ## Quick start
 
 For a completely offline source build and deployment, download the Linux amd64
@@ -72,9 +79,9 @@ to the network.
   and container; it never deletes QMI Web data or guesses deployment names.
 
 Read [offline installation](docs/OFFLINE_INSTALL.md),
-[hardware mode](docs/HARDWARE_MODE.md), [security model](docs/SECURITY_MODEL.md),
-[build instructions](docs/BUILD.md), and [troubleshooting](docs/TROUBLESHOOTING.md)
-before using hardware mode.
+[hardware mode](docs/HARDWARE_MODE.md), [host ownership](docs/HOST_OWNERSHIP.md),
+[security model](docs/SECURITY_MODEL.md), [build instructions](docs/BUILD.md),
+and [troubleshooting](docs/TROUBLESHOOTING.md) before using hardware mode.
 
 ## Hardware notes
 
@@ -83,7 +90,31 @@ sysfs, and driver information; it is not hard-coded to one vendor. Real
 SMS-only validation covered a Quectel-compatible QMI combination using
 \`qmi_wwan\` and \`cdc-wdm\`; it does not imply support for every modem or carrier.
 The installer stops if a selected device is busy and never kills other
-processes or services.
+processes or services. Find the owner and stop its service through the host's
+normal lifecycle instead of killing a short-lived helper.
+
+## Exclusive host ownership and migration
+
+The generic deployment helpers in `scripts/host/` contain no VoHive-specific
+names and never need the Docker socket:
+
+```bash
+sudo ./scripts/host/qmi-claim.sh status --device /dev/cdc-wdmX
+sudo ./scripts/host/qmi-claim.sh observe --device /dev/cdc-wdmX --duration 300
+```
+
+`observe` is read-only and never invokes a modem command. For migration, call
+`isolate` only with an explicitly reviewed unit/container list. It saves the
+original enabled/active state and runtime masks in a state file; after QMI Web
+is stopped, `qmi-release.sh` restores exactly that state. Do not mask Docker,
+the whole network stack, or unrelated timers. ModemManager must also be
+stopped or otherwise prevented from probing the selected node during an
+exclusive cutover.
+
+The installer itself never stops a service named VoHive. The optional
+`scripts/rollback-to-vohive.sh` path requires explicit deployment metadata and
+identifiers. See [host ownership](docs/HOST_OWNERSHIP.md) and
+[rollback](docs/ROLLBACK.md) for migration and recovery boundaries.
 
 QMI Web is an unofficial community project. It is not affiliated with modem
 manufacturers, mobile carriers, or DJI.
