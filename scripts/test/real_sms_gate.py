@@ -69,7 +69,7 @@ def make_test_id(stage: str, when: datetime | None = None) -> str:
     clean = re.sub(r"[^A-Za-z0-9]+", "-", stage.strip().upper()).strip("-")
     if not clean:
         raise ValueError("stage must contain at least one ASCII letter or digit")
-    stamp = (when or utc_now()).strftime("%Y%m%d-%H%M%S")
+    stamp = (when or utc_now()).strftime("%Y%m%dT%H%M%S")
     return f"QMIWEB-{clean}-{stamp}-{secrets.token_hex(2).upper()}"
 
 
