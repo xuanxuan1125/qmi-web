@@ -15,7 +15,7 @@ describe('AboutView', () => {
 
   it('shows the real version, Go version, and MIT license from /version', async () => {
     vi.mocked(getVersion).mockResolvedValue({
-      version: '0.2.0-rc1', commit: 'abc1234', build_time: '2026-08-11T00:00:00Z',
+      version: '0.2.0', commit: 'abc1234', build_time: '2026-08-11T00:00:00Z',
       go_version: 'go1.26.3', qmi_go_version: 'v0.6.4', sms_decoder_version: 'v0.3.0',
       license: 'MIT', sms_only: true
     })
@@ -23,7 +23,7 @@ describe('AboutView', () => {
     await flushPromises()
 
     expect(getVersion).toHaveBeenCalledOnce()
-    expect(wrapper.text()).toContain('v0.2.0-rc1')
+    expect(wrapper.text()).toContain('v0.2.0')
     expect(wrapper.text()).toContain('go1.26.3')
     expect(wrapper.text()).toContain('MIT')
   })

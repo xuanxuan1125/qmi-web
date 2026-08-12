@@ -14,7 +14,7 @@ describe('version store', () => {
 
   it('uses /version as the only build metadata source', async () => {
     vi.mocked(getVersion).mockResolvedValue({
-      version: '0.2.0-rc1', commit: 'abc1234', build_time: '2026-08-11T00:00:00Z',
+      version: '0.2.0', commit: 'abc1234', build_time: '2026-08-11T00:00:00Z',
       go_version: 'go1.26.3', qmi_go_version: 'v0.6.4', sms_decoder_version: 'v0.3.0',
       license: 'MIT', sms_only: true
     })
@@ -23,8 +23,8 @@ describe('version store', () => {
     await store.load()
 
     expect(getVersion).toHaveBeenCalledOnce()
-    expect(store.info?.version).toBe('0.2.0-rc1')
-    expect(store.headerLabel).toBe('v0.2.0-rc1')
+    expect(store.info?.version).toBe('0.2.0')
+    expect(store.headerLabel).toBe('v0.2.0')
   })
 
   it('does not fall back to a hardcoded version when /version fails', async () => {

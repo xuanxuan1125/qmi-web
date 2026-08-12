@@ -1,11 +1,14 @@
-# QMI Web v0.2.0-rc1
+# QMI Web v0.2.0
+
+English | [简体中文](README.zh-CN.md)
 
 QMI Web is an open-source, SMS-only QMI modem and SMS management panel. It
 combines a Vue/TypeScript WebUI, a Go backend, SQLite persistence, inbound-SMS
 deduplication, status/signal views, and optional notifications.
 
-This is a release candidate. Real QMI SMS-only validation has passed; a
-production hardware cutover has **not** been completed.
+This is the first production-capable release. Real QMI SMS-only reception,
+production hardware mode, restart recovery, and deduplication have been
+validated; a 24/48-hour long-term soak is still recommended.
 
 ## Scope and security boundary
 
@@ -29,8 +32,8 @@ Offline Bundle from the release assets, then disconnect the target host if
 desired:
 
 \`\`\`bash
-tar --zstd -xf qmi-web-offline-linux-amd64-v0.2.0-rc1.tar.zst
-cd qmi-web-offline-linux-amd64-v0.2.0-rc1
+tar --zstd -xf qmi-web-offline-linux-amd64-v0.2.0.tar.zst
+cd qmi-web-offline-linux-amd64-v0.2.0
 sudo ./install.sh
 \`\`\`
 

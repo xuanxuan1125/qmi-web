@@ -50,7 +50,7 @@ func RouteContracts() []RouteContract {
 // preventing the human-readable API inventory from drifting from code.
 func RouteReport() string {
 	var report strings.Builder
-	report.WriteString("# QMI Web v0.2.0-rc1 backend route inventory\n")
+	report.WriteString("# QMI Web v0.2.0 backend route inventory\n")
 	report.WriteString("# Generated from internal/api.RouteContracts; verified by TestRoutesContract.\n\n")
 	report.WriteString("METHOD | PATH | HANDLER | ACCESS | SIDE EFFECT\n")
 	report.WriteString("--- | --- | --- | --- | ---\n")

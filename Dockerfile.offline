@@ -7,7 +7,7 @@
 #   build/offline/qmi-backup
 #   build/offline/ca-certificates.crt
 FROM scratch
-ARG VERSION=0.2.0-rc1
+ARG VERSION=0.2.0
 ARG COMMIT=unknown
 ARG BUILD_TIME=unknown
 LABEL org.opencontainers.image.title="QMI Web" \

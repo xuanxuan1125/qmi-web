@@ -7,7 +7,7 @@ COPY web/ ./
 RUN npm run build
 
 FROM golang:1.26.3-alpine AS backend
-ARG VERSION=0.2.0-rc1
+ARG VERSION=0.2.0
 ARG COMMIT=unknown
 ARG BUILD_TIME=unknown
 WORKDIR /src
@@ -20,7 +20,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -trimpath \
   -o /out/qmi-web ./cmd/server
 
 FROM gcr.io/distroless/static-debian12:nonroot
-ARG VERSION=0.2.0-rc1
+ARG VERSION=0.2.0
 ARG COMMIT=unknown
 ARG BUILD_TIME=unknown
 LABEL org.opencontainers.image.title="QMI Web" \
