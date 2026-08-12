@@ -45,3 +45,5 @@ jobs:
           test -f THIRD_PARTY_NOTICES.md
           test -f docs/DEPENDENCIES.md
           test -d vendor
+      - name: Real-SMS runner unit tests (no network)
+        run: python3 -m unittest discover -s scripts/test -p 'test_*.py'

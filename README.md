@@ -78,6 +78,15 @@ to the network.
   restores the saved device ACL, and starts explicitly named VoHive automation
   and container; it never deletes QMI Web data or guesses deployment names.
 
+### Automatic real-SMS gates
+
+Explicit hardware validation can use the opt-in runner in
+[`docs/REAL_SMS_TESTING.md`](docs/REAL_SMS_TESTING.md). It sends uniquely
+identified messages through the external SMS API and matches the exact test ID
+through WMS, decoding, and SQLite. API acceptance is reported separately from
+QMI Web success. CI never calls the real API, and the API key, target, sender,
+and message body must remain process-local secrets.
+
 Read [offline installation](docs/OFFLINE_INSTALL.md),
 [hardware mode](docs/HARDWARE_MODE.md), [host ownership](docs/HOST_OWNERSHIP.md),
 [security model](docs/SECURITY_MODEL.md), [build instructions](docs/BUILD.md),

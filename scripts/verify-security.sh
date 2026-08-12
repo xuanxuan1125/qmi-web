@@ -42,7 +42,7 @@ grep -Fq 'type: bind' "$ROOT/compose.hardware.yaml" || { echo 'FAILED: hardware 
 # High-confidence credentials and local identifiers. Only locations are shown;
 # values are never echoed by this checker.
 scan_files=("$ROOT/README.md" "$ROOT/LICENSE" "$ROOT/THIRD_PARTY_NOTICES.md" "$ROOT/install.sh")
-while IFS= read -r file; do scan_files+=("$file"); done < <(find "$ROOT/cmd" "$ROOT/config" "$ROOT/docs" "$ROOT/internal" "$ROOT/scripts" "$ROOT/tests" "$ROOT/web" -type f \( -name '*.go' -o -name '*.md' -o -name '*.sh' -o -name '*.yaml' -o -name '*.yml' -o -name '*.ts' -o -name '*.vue' -o -name '*.json' \) ! -name 'verify-security.sh' ! -path '*/node_modules/*' ! -path '*/dist/*')
+while IFS= read -r file; do scan_files+=("$file"); done < <(find "$ROOT/cmd" "$ROOT/config" "$ROOT/docs" "$ROOT/internal" "$ROOT/scripts" "$ROOT/tests" "$ROOT/web" -type f \( -name '*.go' -o -name '*.md' -o -name '*.sh' -o -name '*.py' -o -name '*.yaml' -o -name '*.yml' -o -name '*.ts' -o -name '*.vue' -o -name '*.json' \) ! -name 'verify-security.sh' ! -path '*/node_modules/*' ! -path '*/dist/*')
 private_identifiers='(^|[^A-Za-z])(''f''qxku|xu''an)([^A-Za-z]|$)'
 hardware_identifier='A''235'
 windows_user_path='C:\\''Users\\'
