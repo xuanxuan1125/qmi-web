@@ -108,10 +108,19 @@ def _response_is_success(payload: bytes) -> bool:
     def walk(item: Any) -> bool:
         if isinstance(item, bool):
             return item
+        if isinstance(item, (int, float)) and not isinstance(item, bool):
+            return 200 <= item < 300
         if isinstance(item, str):
             lowered = item.strip().lower()
-            return lowered in {"ok", "success", "successful", "sent", "accepted", "queued", "true"}
+            if lowered.isdigit():
+                return 200 <= int(lowered) < 300
+            if lowered in {"ok", "success", "successful", "sent", "accepted", "queued", "true"}:
+                return True
+            return bool(POSITIVE_RESPONSE_WORDS.search(lowered) and not NEGATIVE_RESPONSE_WORDS.search(lowered))
         if isinstance(item, dict):
+            for key in ("code", "status_code", "http_status"):
+                if key in item and walk(item[key]):
+                    return True
             for key in ("success", "ok", "sent", "accepted", "queued"):
                 if key in item and walk(item[key]):
                     return True

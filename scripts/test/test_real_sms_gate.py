@@ -56,6 +56,10 @@ class RealSmsGateTests(unittest.TestCase):
         self.assertIn("test-only-key", request.full_url)
         self.assertIn("10000000000", request.full_url)
 
+    def test_api_201_success_phrase_is_accepted(self):
+        self.assertTrue(gate._response_is_success(b'{"code":201,"message":"SMS sent successfully"}'))
+        self.assertFalse(gate._response_is_success(b'{"code":400,"message":"send failed"}'))
+
     def test_sqlite_matching_uses_test_id_not_count_delta(self):
         with tempfile.TemporaryDirectory() as directory:
             db = Path(directory) / "qmi-web.db"
