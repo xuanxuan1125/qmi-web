@@ -86,6 +86,7 @@ build_binary() {
   local output=$1 package=$2
   CGO_ENABLED=0 GOOS=linux GOARCH=amd64 "$GO_BIN" build -mod=vendor -buildvcs=false -trimpath -ldflags="$ldflags" -o "$ROOT/build/offline/$output" "$package"
   [[ -s $ROOT/build/offline/$output ]] || qmi_die "failed to create $output"
+  chmod 0755 -- "$ROOT/build/offline/$output"
 }
 build_binary qmi-web ./cmd/server
 build_binary qmi-probe ./cmd/qmi-probe
