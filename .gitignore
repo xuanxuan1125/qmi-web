@@ -28,6 +28,7 @@ internal/web/dist/*
 !internal/web/dist/assets/app-placeholder.js
 bin/
 coverage/
+__pycache__/
 tmp/
 *.tar.gz
 *.tar.zst
