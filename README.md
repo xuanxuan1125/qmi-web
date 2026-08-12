@@ -66,6 +66,10 @@ to the network.
 - \`scripts/backup.sh\`, \`scripts/restore.sh\`, \`scripts/update.sh\`, and
   \`scripts/uninstall.sh\` are explicit lifecycle operations. Uninstall preserves
   data and backups unless a second purge confirmation is supplied.
+- \`scripts/rollback-to-vohive.sh\` is an explicit, metadata-driven recovery
+  path. It backs up QMI Web, recreates only QMI Web in \`no-device\` mode,
+  restores the saved device ACL, and starts explicitly named VoHive automation
+  and container; it never deletes QMI Web data or guesses deployment names.
 
 Read [offline installation](docs/OFFLINE_INSTALL.md),
 [hardware mode](docs/HARDWARE_MODE.md), [security model](docs/SECURITY_MODEL.md),

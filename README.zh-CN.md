@@ -106,6 +106,20 @@ sudo ./scripts/uninstall.sh
 
 更新脚本会先备份并保留数据；卸载默认保留数据和备份，清理前请确认精确目录。生产升级前必须人工确认硬件身份、设备占用、回滚包和管理员数据。
 
+生产硬件回滚使用显式的部署元数据和 VoHive 标识，不会删除 QMI Web 数据：
+
+```bash
+sudo ./scripts/rollback-to-vohive.sh \\
+  --install-dir /opt/qmi-web \\
+  --vohive-container <vohive-container> \\
+  --vohive-timer <vohive-timer.service> \\
+  --confirm
+```
+
+脚本只停止并重建已安装的 `qmi-web` 服务，恢复保存的设备 ACL，验证
+`no-device` 健康状态后再启用/启动指定的 VoHive 自动化和容器；不会猜测
+设备路径、容器名或 systemd unit，也不会删除 SQLite、配置、密钥、镜像或备份。
+
 ## 故障排查
 
 先查看 `/health`、`/ready`、`/version`、容器日志和 `app-status.json`。检查设备是否仍为字符设备、驱动是否为 `qmi_wwan`、是否被其他进程占用，以及 WDS 是否始终为 disconnected。遇到权限错误不要改成 root、privileged 或 `chmod 666`；先恢复 ACL 基线并停止硬件模式。
