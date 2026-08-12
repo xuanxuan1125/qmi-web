@@ -1,10 +1,14 @@
-# Automatic real-SMS validation
+# Automatic real-SMS validation (optional experimental tooling)
 
-The real-SMS runner is an explicit hardware-test tool. It is never invoked by
-normal builds or GitHub Actions. It sends one uniquely identified message via
-the Nekoko HTTP API, then proves that the same `TEST_ID` travelled through
-WMS, `ReadMessage`, decoding, and SQLite. An API acceptance result alone is not
-an application pass.
+The v0.2.0 Stable production gate uses a manually sent SMS from an external
+phone. The operator generates a unique `TEST_ID` and proves that the same ID
+travels through WMS, `ReadMessage`, decoding, and SQLite. A row-count increase
+alone is not an application pass, and Stable does not depend on a provider or
+delivery report.
+
+This document describes optional experimental automation for a future,
+explicitly operator-enabled hardware test. It is never invoked by normal
+builds, GitHub Actions, or the v0.2.0 Stable gate.
 
 The public repository contains no real API key, phone number, sender, message
 body, cookie, or session. The runner reads these values only from the current

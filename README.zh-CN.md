@@ -118,14 +118,19 @@ sudo ./scripts/detect-qmi-device.sh --record
 
 项目不包含蜂窝数据拨号、APN 管理、WDS Start Network、DHCP、默认路由修改、DNS 修改、NAT、AT 控制台、短信发送或短信删除。所有生产短信测试都应由外部手机发送。
 
-## 自动真实 SMS 测试
+## 真实短信验收
 
-显式硬件验证可以使用 [`docs/REAL_SMS_TESTING.md`](docs/REAL_SMS_TESTING.md)
-中的自动 runner。它通过外部 SMS API 发送带唯一 `TEST_ID` 的短信，然后在
-WMS、ReadMessage、解码和 SQLite 中匹配同一个 ID。API 接受成功不等于 QMI Web
-成功；只有完整链路通过才算 `REAL_SMS_PASS`。普通 CI 不会调用真实 API。
+v0.2.0 Stable 的生产门禁使用外部手机手动发送短信。操作员生成唯一
+`TEST_ID`，并在 WMS、ReadMessage、解码和 SQLite 中匹配同一个 ID。仅仅看到
+SQLite 行数增加不算通过，也不依赖任何短信服务商或送达回执。
 
-API key、目标号码、from 和短信正文只能存在于测试进程运行时，不能写入 Git、
+## 可选自动真实 SMS 测试
+
+[`docs/REAL_SMS_TESTING.md`](docs/REAL_SMS_TESTING.md) 中的 runner 只是未来可由
+操作员显式启用的实验性自动化工具，不参与 v0.2.0 Stable 门禁，也不会由普通
+构建或 CI 调用真实短信。
+
+测试凭据、目标号码、from 和短信正文只能存在于测试进程运行时，不能写入 Git、
 命令行参数、Docker 配置、日志、报告或 Release。
 
 ## Docker 安全设计
