@@ -1,26 +1,32 @@
 # syntax=docker/dockerfile:1
-FROM node:26-alpine AS frontend
-WORKDIR /src/web
-COPY web/package.json web/package-lock.json ./
-RUN npm ci
-COPY web/ ./
-RUN npm run build
 
+# Stage 1: Build frontend
+FROM node:20-alpine AS frontend
+WORKDIR /src
+# We copy into /src/web since vite config outDir is ../internal/web/dist
+COPY web/package.json web/package-lock.json ./web/
+RUN cd web && npm ci
+COPY web/ ./web/
+RUN cd web && npm run build
+
+# Stage 2: Build backend
 FROM golang:1.26.3-alpine AS backend
-ARG VERSION=0.2.0
+ARG VERSION=0.2.1
 ARG COMMIT=unknown
 ARG BUILD_TIME=unknown
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . ./
+# Copy frontend build output
 COPY --from=frontend /src/internal/web/dist ./internal/web/dist
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -trimpath \
   -ldflags="-s -w -X qmi-web/internal/version.Version=${VERSION} -X qmi-web/internal/version.Commit=${COMMIT} -X qmi-web/internal/version.BuildTime=${BUILD_TIME}" \
   -o /out/qmi-web ./cmd/server
 
+# Stage 3: Minimal runtime
 FROM gcr.io/distroless/static-debian12:nonroot
-ARG VERSION=0.2.0
+ARG VERSION=0.2.1
 ARG COMMIT=unknown
 ARG BUILD_TIME=unknown
 LABEL org.opencontainers.image.title="QMI Web" \

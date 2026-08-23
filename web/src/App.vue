@@ -1,70 +1,97 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSessionStore } from './stores/session'
 import { useVersionStore } from './stores/version'
+import AppShell from './components/layout/AppShell.vue'
+import { Hexagon } from 'lucide-vue-next'
 
 const session = useSessionStore()
 const version = useVersionStore()
-const router = useRouter()
 const route = useRoute()
-const drawer = ref(false)
-const links = [
-  ['/', '概览'], ['/devices', '设备'], ['/sim', 'SIM'], ['/signal', '信号'], ['/sms', '短信'],
-  ['/notifications', '通知'], ['/logs', '日志'], ['/diagnostics', '诊断'],
-  ['/settings', '设置'], ['/about', '关于']
-]
-
-function redirectForSession(path = route.path) {
-  if (!session.checked) return
-  if (!session.authenticated && path !== '/login') return router.replace('/login')
-  if (session.authenticated && path === '/login') return router.replace('/')
-}
-
-function handleUnauthorized() {
-  session.markUnauthenticated()
-  void redirectForSession()
-}
+const router = useRouter()
 
 onMounted(async () => {
-  window.addEventListener('qmi-web:unauthorized', handleUnauthorized)
   void version.load()
   await session.bootstrap()
-  await redirectForSession()
+  
+  if (session.checked && !session.authenticated && route.path !== '/login') {
+    router.replace('/login')
+  } else if (session.checked && session.authenticated && route.path === '/login') {
+    router.replace('/')
+  }
 })
 
-onBeforeUnmount(() => window.removeEventListener('qmi-web:unauthorized', handleUnauthorized))
-watch(() => route.path, path => { void redirectForSession(path) })
+watch(() => session.authenticated, (isAuthenticated) => {
+  if (session.checked && !isAuthenticated && route.path !== '/login') {
+    router.replace('/login')
+  } else if (session.checked && isAuthenticated && route.path === '/login') {
+    router.replace('/')
+  }
+})
 
-async function leave() {
-  await session.logout()
-  await router.replace('/login')
-}
+watch(() => route.path, (newPath) => {
+  if (session.checked && !session.authenticated && newPath !== '/login') {
+    router.replace('/login')
+  }
+})
 </script>
 
 <template>
-  <main v-if="!session.checked" class="splash">正在连接 QMI Web…</main>
-  <router-view v-else-if="route.path === '/login'" />
-  <main v-else class="shell">
-    <button class="menu-button" aria-label="打开导航" @click="drawer = !drawer">☰</button>
-    <aside :class="{ open: drawer }">
-      <div class="brand"><span class="brand-mark">Q</span><div>QMI Web<small>{{ version.headerLabel }} · SMS-only</small></div></div>
-      <nav>
-        <RouterLink v-for="[path, label] in links" :key="path" :to="path" @click="drawer = false">{{ label }}</RouterLink>
-      </nav>
-      <button class="quiet-button" @click="leave">退出登录</button>
-    </aside>
-    <section class="main-panel">
-      <header>
-        <div><strong>QMI Web</strong><span class="muted"> SMS-only 安全模式：已启用</span></div>
-        <div class="header-actions">
-          <div class="status-dot"><i></i> 只读蜂窝控制</div>
-          <RouterLink class="account-link" to="/settings">{{ session.username || 'admin' }}</RouterLink>
-          <button class="quiet-button header-logout" @click="leave">退出</button>
-        </div>
-      </header>
-      <p v-if="session.error" class="error-banner">{{ session.error }}</p>
-      <router-view />
-    </section>
+  <main v-if="!session.checked" class="splash">
+    <div class="loader-container">
+      <div class="brand-icon pulse">
+        <Hexagon :size="40" stroke-width="2.5" />
+      </div>
+      <p class="text-muted mt-2">Connecting to QMI Web...</p>
+    </div>
   </main>
+  
+  <router-view v-else-if="route.path === '/login'" />
+  
+  <AppShell v-else />
 </template>
+
+<style scoped>
+.splash {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background-color: var(--bg-app);
+  background-image: radial-gradient(circle at center, var(--accent-light) 0%, transparent 50%);
+}
+
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-icon {
+  width: 80px;
+  height: 80px;
+  background-color: var(--accent-light);
+  color: var(--accent);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pulse {
+  animation: pulse-soft 2s infinite;
+}
+
+.mt-2 {
+  margin-top: 8px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+@keyframes pulse-soft {
+  0% { transform: scale(0.98); box-shadow: 0 0 0 0 var(--accent-light); }
+  50% { transform: scale(1.02); box-shadow: 0 0 0 20px rgba(0, 157, 245, 0); }
+  100% { transform: scale(0.98); box-shadow: 0 0 0 0 rgba(0, 157, 245, 0); }
+}
+</style>

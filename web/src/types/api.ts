@@ -4,7 +4,7 @@ export interface VersionInfo {
   build_time: string
   go_version: string
   qmi_go_version: string
-  sms_decoder_version: string
+  smscodec_version: string
   license: string
   sms_only: boolean
 }
@@ -81,19 +81,7 @@ export interface QMIValidation {
   wds_status: string
   wms_list: string
   wms_subscribe: string
-  wms_set_event_report: string
-  wms_indication_register: string
-  wms_bind_subscription: string
   sms: string
-  read_message: string
-  decoder: string
-  sqlite: string
-  dedup: string
-  data_guard: string
-  device_ownership: string
-  reconnect_count: number
-  last_wms_indication?: string
-  last_storage_reconciliation?: string
   stored_messages: number
   imported_messages: number
   terminal: boolean
