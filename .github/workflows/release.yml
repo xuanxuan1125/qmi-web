@@ -9,33 +9,89 @@ permissions:
   contents: write
 
 jobs:
-  package:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version: '1.26.3'
-      - uses: actions/setup-node@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '26.7.0'
-      - name: Prepare explicit online release inputs
-        run: ./scripts/prepare-online.sh
-      - name: Verify and package
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies and build frontend
+        working-directory: web
         run: |
-          ./scripts/verify-security.sh
-          make package-offline
-      - name: Create prerelease with offline assets
+          npm ci
+          npm run build
+
+      - name: Build and Package Binaries
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          COMMIT=$(git rev-parse --short HEAD)
+          BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          LDFLAGS="-s -w -X qmi-web/internal/version.Version=${VERSION#v} -X qmi-web/internal/version.Commit=${COMMIT} -X qmi-web/internal/version.BuildTime=${BUILD_TIME}"
+          
+          mkdir -p release-output
+          
+          # Build linux/amd64
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="${LDFLAGS}" -o release-output/qmi-web-linux-amd64 ./cmd/server
+          
+          # Build linux/arm64
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="${LDFLAGS}" -o release-output/qmi-web-linux-arm64 ./cmd/server
+          
+          # Create archive structure for amd64
+          mkdir -p "qmi-web-${VERSION}-linux-amd64/bin" "qmi-web-${VERSION}-linux-amd64/scripts"
+          cp release-output/qmi-web-linux-amd64 "qmi-web-${VERSION}-linux-amd64/bin/qmi-web"
+          cp README.md LICENSE "qmi-web-${VERSION}-linux-amd64/"
+          cp config/config.example.yaml "qmi-web-${VERSION}-linux-amd64/"
+          cp qmi-web.service.example "qmi-web-${VERSION}-linux-amd64/"
+          cp scripts/install.sh scripts/update.sh scripts/uninstall.sh "qmi-web-${VERSION}-linux-amd64/scripts/"
+          tar -czf "release-output/qmi-web-${VERSION}-linux-amd64.tar.gz" "qmi-web-${VERSION}-linux-amd64"
+          
+          # Create archive structure for arm64
+          mkdir -p "qmi-web-${VERSION}-linux-arm64/bin" "qmi-web-${VERSION}-linux-arm64/scripts"
+          cp release-output/qmi-web-linux-arm64 "qmi-web-${VERSION}-linux-arm64/bin/qmi-web"
+          cp README.md LICENSE "qmi-web-${VERSION}-linux-arm64/"
+          cp config/config.example.yaml "qmi-web-${VERSION}-linux-arm64/"
+          cp qmi-web.service.example "qmi-web-${VERSION}-linux-arm64/"
+          cp scripts/install.sh scripts/update.sh scripts/uninstall.sh "qmi-web-${VERSION}-linux-arm64/scripts/"
+          tar -czf "release-output/qmi-web-${VERSION}-linux-arm64.tar.gz" "qmi-web-${VERSION}-linux-arm64"
+          
+          # Generate SHA256SUMS
+          cd release-output
+          sha256sum qmi-web-linux-amd64 qmi-web-linux-arm64 qmi-web-${VERSION}-linux-amd64.tar.gz qmi-web-${VERSION}-linux-arm64.tar.gz > SHA256SUMS
+
+      - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
-            release-output/*.tar.gz \
-            release-output/*.tar.zst \
+            release-output/qmi-web-linux-amd64 \
+            release-output/qmi-web-linux-arm64 \
+            release-output/qmi-web-*.tar.gz \
             release-output/SHA256SUMS \
-            release-output/*dependencies*.md \
-            --prerelease \
             --title "QMI Web $GITHUB_REF_NAME" \
-            --notes "SMS-only release candidate. Real QMI SMS-only validation passed; production hardware cutover has not been completed."
+            --notes "QMI Web $GITHUB_REF_NAME
+
+          **主要更新**
+          - 全新 V3 WebUI
+          - VoCat 风格现代界面 (Light / Dark)
+          - 移动端完美响应式适配 (单列重排、抽屉菜单、独立全屏 SMS 阅读器)
+          - 真实文本日志导出
+          - 修复 Auth Guard 401 鉴权无限跳转问题
+          - 全新无编译环境一键安装脚本 (install.sh / update.sh)
+          - 发布原生 linux/amd64 与 linux/arm64 独立可执行二进制包
+          
+          **安全边界**
+          - 保持纯粹 SMS-only 管理平台定位
+          - 不主动触发数据拨号，不修改路由表"

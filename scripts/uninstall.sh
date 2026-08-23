@@ -1,40 +1,41 @@
 #!/usr/bin/env bash
-# Remove the known QMI Web service without deleting persistent data by default.
-set -Eeuo pipefail
+set -e
 
-SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
-source "$SCRIPT_DIR/common.sh"
+PURGE=0
 
-install_dir=/opt/qmi-web
-purge_data=false
-purge_confirmation=
-while (($#)); do
-  case $1 in
-    --install-dir) install_dir=${2:-}; shift 2 ;;
-    --purge-data) purge_data=true; shift ;;
-    --confirm-purge) purge_confirmation=${2:-}; shift 2 ;;
-    -h|--help) echo 'usage: uninstall.sh [--install-dir /opt/qmi-web] [--purge-data --confirm-purge DELETE_QMI_WEB_DATA]'; exit 0 ;;
-    *) qmi_die "unknown option: $1" ;;
-  esac
+for arg in "$@"; do
+    case $arg in
+        --purge)
+            PURGE=1
+            shift
+            ;;
+    esac
 done
-qmi_validate_install_dir "$install_dir"
-[[ -d $install_dir ]] || qmi_die "install directory does not exist: $install_dir"
 
-if [[ -f $install_dir/compose.yaml ]]; then
-  qmi_require docker
-  qmi_compose -f "$install_dir/compose.yaml" down --rmi local || qmi_die 'failed to remove the known QMI Web container/image'
+echo "正在停止并禁用服务..."
+if systemctl is-active --quiet qmi-web; then
+    systemctl stop qmi-web
 fi
-"$SCRIPT_DIR/revoke-device-acl.sh" --install-dir "$install_dir"
-rm -f -- "$install_dir/compose.yaml"
-rm -rf -- "$install_dir/runtime"
-if [[ -f $install_dir/config/.qmi-web-generated ]]; then
-  rm -f -- "$install_dir/config/config.yaml" "$install_dir/config/.qmi-web-generated"
-  rmdir --ignore-fail-on-non-empty "$install_dir/config" 2>/dev/null || true
+if systemctl is-enabled --quiet qmi-web 2>/dev/null; then
+    systemctl disable qmi-web
 fi
-if [[ $purge_data == true ]]; then
-  [[ $purge_confirmation == DELETE_QMI_WEB_DATA ]] || qmi_die 'data purge requires both --purge-data and --confirm-purge DELETE_QMI_WEB_DATA'
-  rm -rf -- "$install_dir/data"
-  echo 'Persistent data removed by explicit double confirmation. Backups were retained.'
+
+if [ -f /etc/systemd/system/qmi-web.service ]; then
+    rm -f /etc/systemd/system/qmi-web.service
+    systemctl daemon-reload
+fi
+
+INSTALL_DIR="/opt/qmi-web"
+
+echo "正在删除二进制文件..."
+rm -rf "$INSTALL_DIR/bin"
+rm -rf "$INSTALL_DIR/scripts"
+
+if [ $PURGE -eq 1 ]; then
+    echo "警告：正在清理所有数据和配置文件！"
+    rm -rf "$INSTALL_DIR"
+    echo "已完全卸载。"
 else
-  echo 'QMI Web service removed. data/ and backups/ were retained.'
+    echo "服务及二进制文件已卸载。配置文件和数据保留在 $INSTALL_DIR/data。"
+    echo "若要彻底清除数据，请运行: $0 --purge"
 fi

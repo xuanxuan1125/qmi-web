@@ -1,140 +1,66 @@
-# QMI Web v0.2.0
+# QMI Web
 
-English | [简体中文](README.zh-CN.md)
+面向 QMI 蜂窝模组的轻量级 SMS-only Web 管理平台。
 
-QMI Web is an open-source, SMS-only QMI modem and SMS management panel. It
-combines a Vue/TypeScript WebUI, a Go backend, SQLite persistence, inbound-SMS
-deduplication, status/signal views, and optional notifications.
+[English](README.en.md) | 简体中文
 
-This is the first production-capable release. Real QMI SMS-only reception,
-production hardware mode, restart recovery, and deduplication have been
-validated; a 24/48-hour long-term soak is still recommended.
+QMI Web 旨在提供一个干净、现代、易于使用的本地短信管理面板，内置全新的 V3 VoCat 风格前端（支持 Light/Dark 模式），以及使用 Go 语言开发的稳定后端和 SQLite 数据库引擎。通过静态编译，QMI Web 提供跨架构的原生二进制单文件部署。
 
-## Scope and security boundary
+> **当前版本：v0.3.0**
 
-QMI Web can use QMI DMS, UIM, NAS, read-only WDS status, and WMS for inbound
-SMS handling. It deliberately does **not** establish cellular data sessions.
-There is no APN editor, dialer, WDS Start Network operation, DHCP, DNS, route,
-NAT, AT console, SMS sending, SMS deletion, modem reset, USB mode switch, or
-Docker socket access.
+## 界面预览
 
-The default \`no-device\` mode uses a mock backend and maps no hardware. The
-optional \`hardware\` mode is explicit and only accepts one dynamically detected
-\`/dev/cdc-wdmX\` node. It runs as UID/GID \`65532\`, drops all capabilities, uses
-a read-only root filesystem, keeps bridge networking, and uses an exact current
-character-device \`major:minor\` cgroup rule. It does not map \`/dev\` broadly or
-access AT serial ports.
+- 现代化的 Dashboard
+- 响应式侧边栏和完整移动端适配
+- 短信双栏沉浸式阅读与通知机制
+- 真实的文本日志提取与导出功能
 
-Hardware mode also requires exclusive host ownership of the selected QMI
-control node. `qmicli`, `uqmi`, `qmi-network`, ModemManager, another modem
-panel, or a host supervisor must not probe the same node while QMI Web is
-running. A healthy container is not proof of exclusive ownership; recurring
-services must be stopped and temporarily masked so a timer or dependency cannot
-restart them.
+## 安全边界 (SMS-only)
 
-## Quick start
+QMI Web 秉承严格的纯短信管理定位，不干涉也不建立网络连接：
+- **不主动拨号**：不触发 WDS 数据拨号
+- **不干涉路由**：不建立或修改主机的默认蜂窝路由、DNS、NAT 或 APN
+- **轻量级操作**：只通过 QMI 协议获取模组信息（信号、卡状态）并被动接收短信（WMS）
+- **无设备硬写**：不支持发送短信、自动下载 MMS、强制改写设备参数等高危操作
 
-For a completely offline source build and deployment, download the Linux amd64
-Offline Bundle from the release assets, then disconnect the target host if
-desired:
+## 快速一键安装
 
-\`\`\`bash
-tar --zstd -xf qmi-web-offline-linux-amd64-v0.2.0.tar.zst
-cd qmi-web-offline-linux-amd64-v0.2.0
-sudo ./install.sh
-\`\`\`
-
-Choose \`no-device\` for the safe default or \`hardware\` only after reviewing the
-hardware-mode guardrails. The installer checks its manifest, builds with the
-bundled Go/Node/npm inputs while offline, builds a \`FROM scratch\` image with no
-pull, starts the container, validates \`/health\`, \`/ready\`, and \`/version\`, and
-checks SQLite integrity.
-
-Open \`http://<host>:7580\`. The initial local account is \`admin\` / \`admin\`;
-change it immediately. A repeated install cancels by default and never resets
-the database, administrator password, or \`master.key\`; use \`--upgrade\` only
-after reviewing the backup created by the lifecycle scripts.
-
-The Git repository contains complete Go, Vue/TypeScript, tests, Docker and
-Compose files, documentation, and a committed Go \`vendor/\` tree. A normal
-source clone is useful for review and development, but it does not include the
-offline toolchains or npm cache. For an intentionally online maintainer setup,
-run \`sudo ./install.sh --prepare-online\`; normal installation never falls back
-to the network.
-
-## Supported workflows
-
-- \`make build\`, \`make test\`, \`make frontend\`, \`make backend\`, and \`make image\`
-  support development builds.
-- \`make offline-build\` validates a prepared Offline Bundle with \`GOPROXY=off\`,
-  \`GOSUMDB=off\`, \`-mod=vendor\`, and \`npm ci --offline\`.
-- \`make package-offline\` creates the Linux amd64 source and Offline Bundle
-  release assets from a clean public Git checkout.
-- \`scripts/backup.sh\`, \`scripts/restore.sh\`, \`scripts/update.sh\`, and
-  \`scripts/uninstall.sh\` are explicit lifecycle operations. Uninstall preserves
-  data and backups unless a second purge confirmation is supplied.
-- \`scripts/rollback-to-vohive.sh\` is an explicit, metadata-driven recovery
-  path. It backs up QMI Web, recreates only QMI Web in \`no-device\` mode,
-  restores the saved device ACL, and starts explicitly named VoHive automation
-  and container; it never deletes QMI Web data or guesses deployment names.
-
-### Real-SMS validation
-
-The v0.2.0 Stable production gate uses a manually sent SMS from an external
-phone. The operator generates a unique `TEST_ID`, then matches that exact ID
-through WMS, `ReadMessage`, decoding, and SQLite. A row-count increase alone is
-not a pass, and no provider or delivery-report dependency is required.
-
-The runner described in [`docs/REAL_SMS_TESTING.md`](docs/REAL_SMS_TESTING.md)
-is optional experimental tooling for a future, explicitly operator-enabled
-automation path. It is not used by the v0.2.0 Stable release gate. CI never
-sends real SMS messages.
-
-Read [offline installation](docs/OFFLINE_INSTALL.md),
-[hardware mode](docs/HARDWARE_MODE.md), [host ownership](docs/HOST_OWNERSHIP.md),
-[security model](docs/SECURITY_MODEL.md), [build instructions](docs/BUILD.md),
-and [troubleshooting](docs/TROUBLESHOOTING.md) before using hardware mode.
-
-## Hardware notes
-
-Device discovery is generic QMI control-node discovery based on \`cdc-wdm\`,
-sysfs, and driver information; it is not hard-coded to one vendor. Real
-SMS-only validation covered a Quectel-compatible QMI combination using
-\`qmi_wwan\` and \`cdc-wdm\`; it does not imply support for every modem or carrier.
-The installer stops if a selected device is busy and never kills other
-processes or services. Find the owner and stop its service through the host's
-normal lifecycle instead of killing a short-lived helper.
-
-## Exclusive host ownership and migration
-
-The generic deployment helpers in `scripts/host/` contain no VoHive-specific
-names and never need the Docker socket:
+QMI Web v0.3.0 推荐直接运行官方安装脚本。该脚本自动下载 Linux amd64/arm64 版本的二进制程序（内嵌前端静态文件）并配置 `systemd`，无需自行安装 Go / Node / Docker 链：
 
 ```bash
-sudo ./scripts/host/qmi-claim.sh status --device /dev/cdc-wdmX
-sudo ./scripts/host/qmi-claim.sh observe --device /dev/cdc-wdmX --duration 300
+curl -fsSL https://raw.githubusercontent.com/xuanxuan1125/qmi-web/main/scripts/install.sh | sudo bash
 ```
 
-`observe` is read-only and never invokes a modem command. For migration, call
-`isolate` only with an explicitly reviewed unit/container list. It saves the
-original enabled/active state and runtime masks in a state file; after QMI Web
-is stopped, `qmi-release.sh` restores exactly that state. Do not mask Docker,
-the whole network stack, or unrelated timers. ModemManager must also be
-stopped or otherwise prevented from probing the selected node during an
-exclusive cutover.
+**更新/回滚版本：**
+```bash
+sudo /opt/qmi-web/scripts/update.sh
+```
 
-The installer itself never stops a service named VoHive. The optional
-`scripts/rollback-to-vohive.sh` path requires explicit deployment metadata and
-identifiers. See [host ownership](docs/HOST_OWNERSHIP.md) and
-[rollback](docs/ROLLBACK.md) for migration and recovery boundaries.
+**卸载：**
+```bash
+sudo /opt/qmi-web/scripts/uninstall.sh
+```
 
-QMI Web is an unofficial community project. It is not affiliated with modem
-manufacturers, mobile carriers, or DJI.
+## 支持架构与设备
 
-## License and contribution
+- **架构**：`Linux amd64`，`Linux arm64` (aarch64)。支持部署在工控机、Raspberry Pi 架构设备或支持 Linux 的 ARM NAS 及 OpenStick 设备上。
+- **设备**：兼容大多数使用 QMI 协议的 `cdc-wdm` 蜂窝模组（如移远等常见 4G/5G 模组）。
 
-QMI Web is licensed under the [MIT License](LICENSE). Third-party notices and
-dependency information are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
-and [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md). See [SECURITY.md](SECURITY.md)
-for private vulnerability reporting and [CONTRIBUTING.md](CONTRIBUTING.md) for
-development and hardware-test rules.
+## ⚠️ 冲突提醒 (ModemManager)
+
+如果你系统上已经运行了 `ModemManager`、`VoHive`、`VoCat` 或 `SimAdmin` 等服务，它们很可能会与 QMI Web 同时争抢同一个模组设备的控制权，导致设备状态异常或短信漏读。
+
+**强烈建议：同一时间只由一个管理程序接管目标 `/dev/cdc-wdmX` 设备。**
+（安装脚本会尝试检测 ModemManager 并发出警告，但绝不会擅自停止你的系统服务）
+
+## 手动部署 (Docker Compose)
+
+如果您仍然希望通过 Docker 进行部署，参考此流程。但由于 v0.3.0 已经是无需外部依赖的编译型单文件后端，基于 systemd 原生运行将更轻量、更快且更方便穿透管理 `/dev` 设备节点。
+
+```bash
+# 请自行根据需求适配 qmi-web 的 volumes
+docker run -d --name qmi-web --device=/dev/cdc-wdm0 -p 7580:7580 ghcr.io/xuanxuan1125/qmi-web:0.3.0
+```
+
+## 许可证
+MIT License

@@ -14,7 +14,7 @@ const { route, replace, session, version } = vi.hoisted(() => ({
     logout: vi.fn(),
     markUnauthenticated: vi.fn()
   },
-  version: { headerLabel: 'v0.1.3', load: vi.fn() }
+  version: { headerLabel: 'v0.3.0', load: vi.fn() }
 }))
 
 vi.mock('vue-router', () => ({
@@ -46,7 +46,7 @@ describe('App shell build label', () => {
     await flushPromises()
 
     expect(version.load).toHaveBeenCalledOnce()
-    expect(wrapper.text()).toContain('v0.1.3 · SMS-only')
+    expect(wrapper.text()).toContain('v0.3.0 · SMS-only')
     expect(wrapper.text()).not.toContain('v0.1.2')
   })
 })
