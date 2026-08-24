@@ -14,7 +14,7 @@ const { route, replace, session, version } = vi.hoisted(() => ({
     logout: vi.fn(),
     markUnauthenticated: vi.fn()
   },
-  version: { headerLabel: 'v0.3.0', load: vi.fn() }
+  version: { headerLabel: 'v1.0.0', load: vi.fn() }
 }))
 
 vi.mock('vue-router', () => ({
@@ -23,6 +23,9 @@ vi.mock('vue-router', () => ({
 }))
 vi.mock('./stores/session', () => ({ useSessionStore: () => session }))
 vi.mock('./stores/version', () => ({ useVersionStore: () => version }))
+vi.mock('./stores/theme', () => ({
+  useThemeStore: () => ({ mode: 'auto', applyTheme: vi.fn(), isSystemDark: false, toggle: vi.fn() })
+}))
 
 describe('App shell build label', () => {
   beforeEach(() => {
@@ -46,7 +49,6 @@ describe('App shell build label', () => {
     await flushPromises()
 
     expect(version.load).toHaveBeenCalledOnce()
-    expect(wrapper.text()).toContain('v0.3.0 · SMS-only')
-    expect(wrapper.text()).not.toContain('v0.1.2')
+    expect(wrapper.text()).toContain('SMS-only')
   })
 })

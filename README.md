@@ -6,7 +6,7 @@
 
 QMI Web 旨在提供一个干净、现代、易于使用的本地短信管理面板，内置全新的 V3 VoCat 风格前端（支持 Light/Dark 模式），以及使用 Go 语言开发的稳定后端和 SQLite 数据库引擎。通过静态编译，QMI Web 提供跨架构的原生二进制单文件部署。
 
-> **当前版本：v0.3.0**
+> **当前版本：v1.0.0**
 
 ## 界面预览
 
@@ -14,6 +14,7 @@ QMI Web 旨在提供一个干净、现代、易于使用的本地短信管理面
 - 响应式侧边栏和完整移动端适配
 - 短信双栏沉浸式阅读与通知机制
 - 真实的文本日志提取与导出功能
+- **[新] 自动深浅色主题模式**：跟随系统主题实时无缝切换，并支持设置持久化与手动覆盖
 
 ## 安全边界 (SMS-only)
 
@@ -25,7 +26,7 @@ QMI Web 秉承严格的纯短信管理定位，不干涉也不建立网络连接
 
 ## 快速一键安装
 
-QMI Web v0.3.0 推荐直接运行官方安装脚本。该脚本自动下载 Linux amd64/arm64 版本的二进制程序（内嵌前端静态文件）并配置 `systemd`，无需自行安装 Go / Node / Docker 链：
+QMI Web v1.0.0 推荐直接运行官方安装脚本。该脚本自动下载 Linux amd64/arm64 版本的二进制程序（内嵌前端静态文件）并配置 `systemd`，无需自行安装 Go / Node / Docker 链：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/xuanxuan1125/qmi-web/main/scripts/install.sh | sudo bash
@@ -55,11 +56,11 @@ sudo /opt/qmi-web/scripts/uninstall.sh
 
 ## 手动部署 (Docker Compose)
 
-如果您仍然希望通过 Docker 进行部署，参考此流程。但由于 v0.3.0 已经是无需外部依赖的编译型单文件后端，基于 systemd 原生运行将更轻量、更快且更方便穿透管理 `/dev` 设备节点。
+如果您仍然希望通过 Docker 进行部署，参考此流程。但由于 v1.0.0 已经是无需外部依赖的编译型单文件后端，基于 systemd 原生运行将更轻量、更快且更方便穿透管理 `/dev` 设备节点。
 
 ```bash
 # 请自行根据需求适配 qmi-web 的 volumes
-docker run -d --name qmi-web --device=/dev/cdc-wdm0 -p 7580:7580 ghcr.io/xuanxuan1125/qmi-web:0.3.0
+docker run -d --name qmi-web --device=/dev/cdc-wdm0 -p 7580:7580 ghcr.io/xuanxuan1125/qmi-web:1.0.0
 ```
 
 ## 许可证

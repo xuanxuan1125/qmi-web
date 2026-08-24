@@ -3,15 +3,18 @@ import { onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSessionStore } from './stores/session'
 import { useVersionStore } from './stores/version'
+import { useThemeStore } from './stores/theme'
 import AppShell from './components/layout/AppShell.vue'
 import { Hexagon } from 'lucide-vue-next'
 
 const session = useSessionStore()
 const version = useVersionStore()
+const themeStore = useThemeStore()
 const route = useRoute()
 const router = useRouter()
 
 onMounted(async () => {
+  themeStore.applyTheme()
   void version.load()
   await session.bootstrap()
   

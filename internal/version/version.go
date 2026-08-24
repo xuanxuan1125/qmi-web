@@ -3,14 +3,14 @@ package version
 import "runtime"
 
 var (
-	Version   = "0.3.0"
+	Version   = "1.0.0"
 	Commit    = "dev"
 	BuildTime = "unknown"
 )
 
 const (
 	QMIGoVersion    = "v0.6.4"
-	SMSDecoderVersion = "v0.3.0"
+	SMSDecoderVersion = "v1.0.0"
 )
 
 type Info struct {

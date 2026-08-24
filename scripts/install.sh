@@ -33,7 +33,7 @@ if [ -z "$QMI_WEB_VERSION" ]; then
     QMI_WEB_VERSION=$(echo "$LATEST_RELEASE" | grep -oP '"tag_name": "\K[^"]+')
     # If jq or grep failed, fallback to hardcoded or fail
     if [ -z "$QMI_WEB_VERSION" ]; then
-        echo "无法获取最新版本，正在回退。请尝试指定版本: QMI_WEB_VERSION=v0.3.0"
+        echo "无法获取最新版本，正在回退。请尝试指定版本: QMI_WEB_VERSION=v1.0.0"
         exit 1
     fi
 fi

@@ -6,7 +6,8 @@ import {
   Activity, Settings, LogOut, X, Sun, Moon, Info, ShieldCheck
 } from 'lucide-vue-next'
 import { useSessionStore } from '../../stores/session'
-import { ref, onMounted } from 'vue'
+import { useThemeStore } from '../../stores/theme'
+import { ref, onMounted, computed } from 'vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -18,11 +19,16 @@ const emit = defineEmits<{
 
 const route = useRoute()
 const session = useSessionStore()
+const themeStore = useThemeStore()
 
-const isDark = ref(false)
+// For the UI to show sun/moon, we determine actual dark state 
+const isDark = computed(() => {
+  if (themeStore.mode === 'dark') return true
+  if (themeStore.mode === 'light') return false
+  return themeStore.isSystemDark
+})
 
 onMounted(() => {
-  isDark.value = document.documentElement.classList.contains('dark')
   window.addEventListener('keydown', handleKeydown)
 })
 
@@ -38,14 +44,7 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 function toggleTheme() {
-  isDark.value = !isDark.value
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-    localStorage.setItem('theme', 'dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-    localStorage.setItem('theme', 'light')
-  }
+  themeStore.toggle()
 }
 
 const navGroups = [

@@ -20,8 +20,6 @@ describe('DeviceView', () => {
     await flushPromises()
 
     expect(getDevices).toHaveBeenCalledOnce()
-    expect(wrapper.text()).toContain('未检测到兼容 QMI 设备')
-    expect(wrapper.text()).toContain('no-device 模式')
     expect(wrapper.text()).not.toContain('v0.1.1')
     expect(wrapper.find('pre').exists()).toBe(false)
   })

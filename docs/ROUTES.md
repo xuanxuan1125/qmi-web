@@ -1,4 +1,4 @@
-# QMI Web v0.3.0 backend route inventory
+# QMI Web v1.0.0 backend route inventory
 # Generated from internal/api.RouteContracts; verified by TestRoutesContract.
 
 METHOD | PATH | HANDLER | ACCESS | SIDE EFFECT

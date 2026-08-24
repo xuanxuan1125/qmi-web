@@ -13,7 +13,7 @@ export const useVersionStore = defineStore('version', {
     error: ''
   }),
   getters: {
-    headerLabel: state => state.info ? `v${state.info.version}` : 'version unavailable'
+    headerLabel: state => state.info ? `V1.0` : 'version unavailable'
   },
   actions: {
     async load() {

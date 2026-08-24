@@ -5,7 +5,7 @@ name: qmi-web
 
 services:
   qmi-web:
-    image: local/qmi-web:0.3.0
+    image: local/qmi-web:1.0.0
     container_name: qmi-web
     restart: unless-stopped
     environment:

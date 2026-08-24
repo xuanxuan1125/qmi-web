@@ -2,10 +2,11 @@
 import { ref, onMounted } from 'vue'
 import { getSettings, updateSettings } from '../api/settings'
 import type { SettingsResponse, SettingsUpdate } from '../types/api'
+import { useThemeStore } from '../stores/theme'
 import { Save, Loader2, Bell, Shield, Palette, Layout, Server, AlertCircle } from 'lucide-vue-next'
 
 const settings = ref<SettingsResponse | null>(null)
-const theme = ref('light') // local mockup for theme since it's not in backend
+const themeStore = useThemeStore()
 const ppToken = ref('') // store token locally
 const busy = ref(false)
 const error = ref('')
@@ -42,19 +43,6 @@ async function save() {
     success.value = true
     ppToken.value = ''
     setTimeout(() => { success.value = false }, 3000)
-    
-    // Apply theme immediately
-    if (theme.value === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else if (theme.value === 'light') {
-      document.documentElement.classList.remove('dark')
-    } else {
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.documentElement.classList.add('dark')
-      } else {
-        document.documentElement.classList.remove('dark')
-      }
-    }
   } catch (e) {
     error.value = e instanceof Error ? e.message : '保存失败'
   } finally {
@@ -122,18 +110,18 @@ const tabs = [
           <div class="field-group">
             <label>系统主题</label>
             <div class="theme-selector">
-              <label class="theme-option" :class="{active: theme === 'light'}">
-                <input type="radio" v-model="theme" value="light" class="sr-only" />
+              <label class="theme-option" :class="{active: themeStore.mode === 'light'}">
+                <input type="radio" v-model="themeStore.mode" value="light" class="sr-only" />
                 <div class="theme-preview light-preview"></div>
                 <span>浅色 (Light)</span>
               </label>
-              <label class="theme-option" :class="{active: theme === 'dark'}">
-                <input type="radio" v-model="theme" value="dark" class="sr-only" />
+              <label class="theme-option" :class="{active: themeStore.mode === 'dark'}">
+                <input type="radio" v-model="themeStore.mode" value="dark" class="sr-only" />
                 <div class="theme-preview dark-preview"></div>
                 <span>深色 (Dark)</span>
               </label>
-              <label class="theme-option" :class="{active: theme === 'auto'}">
-                <input type="radio" v-model="theme" value="auto" class="sr-only" />
+              <label class="theme-option" :class="{active: themeStore.mode === 'auto'}">
+                <input type="radio" v-model="themeStore.mode" value="auto" class="sr-only" />
                 <div class="theme-preview auto-preview"></div>
                 <span>跟随系统 (Auto)</span>
               </label>

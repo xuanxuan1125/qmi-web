@@ -49,6 +49,9 @@ jobs:
           # Build linux/arm64
           CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags="${LDFLAGS}" -o release-output/qmi-web-linux-arm64 ./cmd/server
           
+          # Build windows/amd64
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -trimpath -ldflags="${LDFLAGS}" -o release-output/qmi-web-windows-amd64.exe ./cmd/server
+          
           # Create archive structure for amd64
           mkdir -p "qmi-web-${VERSION}-linux-amd64/bin" "qmi-web-${VERSION}-linux-amd64/scripts"
           cp release-output/qmi-web-linux-amd64 "qmi-web-${VERSION}-linux-amd64/bin/qmi-web"
@@ -67,9 +70,18 @@ jobs:
           cp scripts/install.sh scripts/update.sh scripts/uninstall.sh "qmi-web-${VERSION}-linux-arm64/scripts/"
           tar -czf "release-output/qmi-web-${VERSION}-linux-arm64.tar.gz" "qmi-web-${VERSION}-linux-arm64"
           
+          # Create archive structure for windows
+          mkdir -p "qmi-web-${VERSION}-windows-amd64"
+          cp release-output/qmi-web-windows-amd64.exe "qmi-web-${VERSION}-windows-amd64/qmi-web.exe"
+          cp README.md LICENSE "qmi-web-${VERSION}-windows-amd64/"
+          cp config/config.example.yaml "qmi-web-${VERSION}-windows-amd64/"
+          cp scripts/install.bat "qmi-web-${VERSION}-windows-amd64/"
+          # Note: Windows default tar in github actions supports -czf but standard is zip. We can use zip.
+          cd "qmi-web-${VERSION}-windows-amd64" && zip -r "../release-output/qmi-web-${VERSION}-windows-amd64.zip" * && cd ..
+          
           # Generate SHA256SUMS
           cd release-output
-          sha256sum qmi-web-linux-amd64 qmi-web-linux-arm64 qmi-web-${VERSION}-linux-amd64.tar.gz qmi-web-${VERSION}-linux-arm64.tar.gz > SHA256SUMS
+          sha256sum qmi-web-linux-amd64 qmi-web-linux-arm64 qmi-web-windows-amd64.exe qmi-web-${VERSION}-linux-amd64.tar.gz qmi-web-${VERSION}-linux-arm64.tar.gz qmi-web-${VERSION}-windows-amd64.zip > SHA256SUMS
 
       - name: Create GitHub Release
         env:
